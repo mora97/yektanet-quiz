@@ -1,0 +1,183 @@
+@use "./abstracts/mixins";
+
+* {
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box;
+  direction: rtl;
+}
+
+.shadow {
+  box-shadow: 1px 1px 5px #707070;
+}
+
+.flex {
+  &__row-start {
+    display: flex !important;
+    flex-direction: row;
+    justify-content: start;
+    flex-wrap: wrap !important;
+  }
+
+  &__row-around {
+    display: flex !important;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+.grid {
+  &__wrapper {
+    grid-template-columns: repeat(6, 1fr);
+    display: grid;
+  }
+
+  &__col-6 {
+    grid-column: 1 / 6;
+  }
+
+  &__row {
+    grid-row: 1 !important;
+  }
+}
+
+@for $i from 0 through 150 {
+  $per: $i * 1%;
+  $rem: $i / 10;
+
+  .w-#{$i} {
+    width: #{$per} !important;
+  }
+
+  .width-#{$i} {
+    width: #{$rem}rem !important;
+  }
+
+  .max-width-#{$i} {
+    max-width: #{$rem}rem !important;
+  }
+
+  .height-#{$i} {
+    height: #{$rem}rem;
+  }
+
+  .min-height-#{$i} {
+    min-height: #{$rem}rem;
+  }
+
+  .m-x-#{$i} {
+    margin-left: #{$rem}rem !important;
+    margin-right: #{$rem}rem !important;
+  }
+
+  .m-y-#{$i} {
+    margin-top: #{$rem}rem !important;
+    margin-bottom: #{$rem}rem !important;
+  }
+
+  .m-t-#{$i} {
+    margin-top: #{$rem}rem !important;
+  }
+
+  .m-b-#{$i} {
+    margin-bottom: #{$rem}rem !important;
+  }
+
+  .p-x-#{$i} {
+    padding-left: #{$rem}rem !important;
+    padding-right: #{$rem}rem !important;
+  }
+
+  .p-y-#{$i} {
+    padding-top: #{$rem}rem !important;
+    padding-bottom: #{$rem}rem !important;
+  }
+
+  .border-radius-#{$i} {
+    border-radius: #{$rem}rem !important;
+  }
+}
+
+.text-center {
+  text-align: center;
+}
+
+.position-relative {
+  position: relative !important;
+}
+
+.position-absolute {
+  position: absolute !important;
+}
+
+::-webkit-scrollbar {
+  width: 0.4rem;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 1rem;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #707070;
+  border-radius: 1rem;
+}
+
+@for $i from 0 through 100 {
+  $j: $i / 10;
+
+  .top-#{$i} {
+    top: #{$j}rem !important;
+  }
+
+  .bottom-#{$i} {
+    bottom: #{$j}rem;
+  }
+
+  .right-#{$i} {
+    right: #{$j}rem;
+  }
+
+  $p: $i * 1%;
+  .left-#{$i} {
+    left: #{$p} !important;
+  }
+}
+
+.md-hide {
+  display: none;
+}
+
+.md-show {
+  display: inherit;
+}
+
+@include mixins.sm-screen {
+  .sm-hide {
+    display: none !important;
+  }
+
+  .sm-show {
+    display: block !important;
+  }
+
+  .grid {
+    &__wrapper {
+      display: block;
+    }
+  }
+
+  .sm-text-right {
+    text-align: right !important;
+  }
+
+  .sm-flex {
+    &__row-start {
+      display: flex !important;
+      flex-direction: row;
+      justify-content: start;
+      flex-wrap: wrap !important;
+    }
+  }
+}
