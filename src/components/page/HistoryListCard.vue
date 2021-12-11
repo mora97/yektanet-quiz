@@ -1,7 +1,7 @@
 <template>
   <div
     :class="[
-      styles.shadow,
+      styles.backgroundCard,
       styles.positionRelative,
       styles.gridWrapper,
       styles.gridRow,

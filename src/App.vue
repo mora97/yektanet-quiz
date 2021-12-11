@@ -1,17 +1,15 @@
 <template>
-  <div :class="[styles.pX10]">
-    <div :class="[styles.flexRowStart, styles.mT10]">
-      <YInput
-        v-for="filter in filters"
-        :key="filter"
-        v-model="filtersValue[filter.key]"
-        :placeholder="filter.title"
-        :class="[styles.mX5, styles.mB10]"
+  <div :class="[styles.pX20]">
+    <div :class="[styles.mT10]">
+      <Filterbar
+        :filters="filters"
+        @filter="filterItems"
+        v-model="filtersValue"
       />
-      <YButton @click="sortFields" title="مرتب سازی فیلدها" />
+      <YButton @click="sortFields" title="مرتب سازی فیلدها" :class="[styles.mX5, styles.width70, styles.mY5]" />
     </div>
-    <div :class="[styles.mT30, styles.mB10]">
-      <HistoryList :histories="histories" />
+    <div :class="[styles.mT20, styles.mB10]">
+      <HistoryList :histories="histories" @load-more-emit="loadMoreHistories" />
     </div>
   </div>
 </template>
@@ -19,10 +17,12 @@
 <script>
 import YInput from "@uikit/YInput";
 import YButton from "@uikit/YButton";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 import mockData from "@/static-data/data.json";
 import HistoryList from "./components/page/HistoryList.vue";
 import styles from "@styles";
+import Filterbar from "./components/ui-kit/Filterbar.vue";
+import { createBST, convertDateToTime } from "./utils";
 
 export default {
   name: "App",
@@ -30,9 +30,10 @@ export default {
     YInput,
     HistoryList,
     YButton,
+    Filterbar,
   },
   setup() {
-    const tree = {};
+    let bst = {};
     const filters = ref([
       {
         key: "name",
@@ -57,58 +58,43 @@ export default {
       title: "",
       field: "",
     });
-    const histories = ref(mockData);
+    const histories = ref();
     const url = new URL(window.location.href);
     let sortFieldsAscending = false;
 
-    watch(
-      () => filtersValue.value.name,
-      (value) => {
-        searchQuery("name", value.toLowerCase());
-      }
-    );
+    const filterItems = () => {
+      let historiesItem = mockData;
+      Object.keys(filtersValue.value).forEach((filterKey) => {
+        setUrlQuery(filterKey, filtersValue.value[filterKey]);
+      });
 
-    watch( () => filtersValue.value.title,
-      (value) => {
-        searchQuery("title", value.toLowerCase());
+      if (filtersValue.value.date.length) {
+        historiesItem = filterBaseOnDate(filtersValue.value.date);
       }
-    );
 
-    watch(
-      () => filtersValue.value.field,
-      (value) => {
-        searchQuery("field", value.toLowerCase());
-      }
-    );
-
-    watch(
-      () => filtersValue.value.date,
-      (value) => {
-        if (value.length > 8) {
-          searchDate(value);
-        } else {
-          histories.value = mockData;
-        }
-      }
-    );
-
-    const searchDate = (date) => {
-      const time = convertDateToTime(date);
-      histories.value = tree[time] ? tree[time].items : [];
-      setUrlQuery("date", date);
+      histories.value = historiesItem.filter((history) => {
+        return (
+          history.name
+            .toLowerCase()
+            .includes(filtersValue.value.name.toLowerCase()) &&
+          history.field
+            .toLowerCase()
+            .includes(filtersValue.value.field.toLowerCase()) &&
+          history.title
+            .toLowerCase()
+            .includes(filtersValue.value.title.toLowerCase())
+        );
+      });
     };
 
-    const searchQuery = (searchedKey, searchedText) => {
-      histories.value = mockData.filter((hisotry) => {
-        const key = hisotry[searchedKey].toLowerCase();
-        return key.includes(searchedText, 0);
-      });
-      setUrlQuery(searchedKey, searchedText);
+    const filterBaseOnDate = (date) => {
+      const time = convertDateToTime(date);
+      return bst[time] ? bst[time].items : [];
     };
 
     const setUrlQuery = (key, value) => {
       const query = url.searchParams;
-      
+
       if (query.get(key) !== null) {
         query.set(key, value);
       } else {
@@ -119,43 +105,6 @@ export default {
         key,
         `?${query.toString()}`
       );
-    };
-
-    const convertDateToTime = (date) => {
-      const seperateDate = date.split("-");
-      return new Date(
-        seperateDate[0],
-        seperateDate[1],
-        seperateDate[2]
-      ).getTime();
-    };
-
-    const insertBSTNode = (time, item, nodeIndex) => {
-      if (nodeIndex < time) {
-        if (tree[nodeIndex].rightChild) {
-          insertBSTNode(time, item, tree[nodeIndex].rightChild);
-        } else {
-          tree[nodeIndex].rightChild = time;
-          tree[time] = {
-            items: [item],
-            rightChild: null,
-            leftChild: null,
-          };
-        }
-      } else if (nodeIndex > time) {
-        if (tree[nodeIndex].leftChild) {
-          insertBSTNode(time, item, tree[nodeIndex].leftChild);
-        } else {
-          tree[nodeIndex].leftChild = time;
-          tree[time] = {
-            items: [item],
-            rightChild: null,
-            leftChild: null,
-          };
-        }
-      } else if (nodeIndex === time) {
-        tree[nodeIndex].items.push(item);
-      }
     };
 
     const sortFields = () => {
@@ -179,22 +128,25 @@ export default {
           filtersValue.value[filter.key] = query.get(filter.key);
         }
       });
+      filterItems()
     };
 
-    onMounted(() => {
-      initFilters();
-      mockData.forEach((data, index) => {
-        const time = convertDateToTime(data.date);
-        if (index === 0) {
-          tree[time] = {
-            items: [data],
-            rightChild: null,
-            leftChild: null,
-          };
-        } else {
-          insertBSTNode(time, data, convertDateToTime(mockData[0].date));
+    const loadMoreHistories = () => {
+      if (histories.value.length > 500) {
+        const startIndex = histories.value.length;
+        if (startIndex !== mockData.length) {
+          histories.value = histories.value.concat(
+            mockData.slice(startIndex, startIndex + 500)
+          );
         }
-      });
+      }
+    };
+
+    onMounted(async () => {
+      histories.value = mockData.slice(0, 100);
+      bst = await createBST(mockData);
+      initFilters();
+      
     });
 
     return {
@@ -202,8 +154,9 @@ export default {
       filtersValue,
       styles,
       histories,
-      searchDate,
       sortFields,
+      loadMoreHistories,
+      filterItems,
     };
   },
 };

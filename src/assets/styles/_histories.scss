@@ -1,19 +1,23 @@
-@use  './abstracts/mixins';
+@use "./abstracts/mixins";
 
 .histories-wrapper {
-    padding: .5rem !important;
-    position: relative;
-    height: 82vh;
-    overflow-x: hidden;
-    overflow-y: scroll;
+  padding: 0.5rem !important;
+  position: relative;
+  height: 78vh;
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+
+.background-card {
+  background: #dfdddd;
 }
 
 @include mixins.sm-screen {
-    .histories-wrapper {
-        padding: .5rem !important;
-        position: relative;
-        height: 80vh !important;
-        overflow-x: hidden;
-        overflow-y: scroll;
-    }   
+  .histories-wrapper {
+    padding: 0.5rem !important;
+    position: relative;
+    height: 70vh !important;
+    overflow-x: hidden;
+    overflow-y: scroll;
+  }
 }
